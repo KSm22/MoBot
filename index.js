@@ -1,7 +1,6 @@
 require('dotenv').config();
-const fetch = require('node-fetch');
 const TelegramBot = require('node-telegram-bot-api');
-const {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms} = require('./server');
+const {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms, getFilmsByGenres} = require('./server');
 const keyboard = require('./keyboard')
 const kb = require('./keyboard-btns');
 
@@ -15,11 +14,53 @@ bot.on('message', msg => {
     switch (msg.text) {
         case kb.films.popular:
             getPopularFilms(bot, chatId);
+            bot.sendMessage(chatId, "Выберите страицу", {
+                reply_markup: JSON.stringify({
+                    inline_keyboard: [
+                        [{ text: 'Предыдущая', callback_data: 'prevP' }, { text: 'Следующая', callback_data: 'nextP' }]
+                    ]
+                })
+            });
             break;
         case kb.films.top:
             getTopFilms(bot, chatId);
+            bot.sendMessage(chatId, "Выберите страицу", {
+                reply_markup: JSON.stringify({
+                    inline_keyboard: [
+                        [{ text: 'Предыдущая', callback_data: 'prevT' }, { text: 'Следующая', callback_data: 'nextT' }]
+                    ]
+                })
+            });
+            break;
+        case kb.films.genres:
+            bot.sendMessage(chatId, "Выберите жанр", {
+                reply_markup: {
+                    keyboard: keyboard.genre
+                }
+            });
+            break;
 
-            break
+        // Обработка жанров
+        case kb.genre.action:
+            getFilmsByGenres(bot, chatId, 28);
+            break;
+        case kb.genre.horror:
+            getFilmsByGenres(bot, chatId, 27);
+            break;
+        case kb.genre.drama:
+            getFilmsByGenres(bot, chatId, 18);
+            break;
+        case kb.genre.comedy:
+            getFilmsByGenres(bot, chatId, 35);
+            break;
+
+        case kb.back:
+            bot.sendMessage(chatId, "Вы вернулись на главный экран", {
+                reply_markup: {
+                    keyboard: keyboard.films
+                }
+            });
+            break;
     }
 })
 
@@ -29,7 +70,7 @@ bot.onText(/\/start/, msg => {
 
     bot.sendMessage(chatId, text, {
         reply_markup: {
-            keyboard: keyboard.keyboard
+            keyboard: keyboard.films
         }
     })
 });
@@ -50,3 +91,37 @@ bot.onText(/\/find(.+)/, async (msg, [source, match]) => {
     getFilmByTitle(bot, chatId, filmTitle);
 });
 
+// Обработка инлайн клавиатуры
+let page = 1;
+if ( page < 1) {
+    page = 1
+}
+
+bot.on('callback_query', query => {
+    const {chat} = query.message;
+
+    switch (query.data) {
+        // Top
+        case "nextT":
+           page += 1;
+           getTopFilms(bot, chat.id, page);
+           break;
+        case "prevT":
+            page -= 1;
+            getTopFilms(bot, chat.id, page);
+            break;
+        // Popular
+        case "nextP":
+            page += 1;
+            getPopularFilms(bot, chat.id, page);
+            break;
+        case "prevP":
+            page -= 1;
+            getPopularFilms(bot, chat.id, page);
+            break;
+    }
+
+    bot.answerCallbackQuery({
+        callback_query_id: query.id
+    })
+});

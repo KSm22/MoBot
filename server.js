@@ -8,7 +8,7 @@ const OPTIONS = {
 };
 
 // Получить популярные фильмы
-async function getPopularFilms(bot, chatId) {
+async function getPopularFilms(bot, chatId, PAGE) {
     const response = await fetch(
         `${BASE_URL}/movie/popular?api_key=${process.env.API_KEY}&language=ru-RU%3DRU&page=${PAGE}&region=ru`, OPTIONS)
         .then(async res => res.json())
@@ -24,7 +24,7 @@ async function getPopularFilms(bot, chatId) {
     sendHTML(bot, chatId, html);
 }
 
-async function getTopFilms(bot, chatId) {
+async function getTopFilms(bot, chatId, PAGE) {
     const response = await fetch(
         `${BASE_URL}/movie/top_rated?api_key=${process.env.API_KEY}&language=ru-RU%3DRU&page=${PAGE}&region=ru`, OPTIONS)
         .then(async res => res.json())
@@ -68,6 +68,23 @@ async function getFilmByTitle(bot, chatId, title) {
     sendHTML(bot, chatId, html);
 }
 
+// Поиск по жанрам
+async function getFilmsByGenres(bot, chatId, genre) {
+    const response = await fetch(`${BASE_URL}/discover/movie?api_key=${process.env.API_KEY}&language=ru-RU&with_genres=${genre}`, OPTIONS)
+        .then(async res => res.json())
+        .then(async data => data.results)
+        .catch(e => {
+            console.log(e);
+        });
+
+    html = response.map((f, i) => {
+        return `<b>${i + 1})</b> ${f.title} - /details${f.id}`
+    }).join('\n');
+
+    sendHTML(bot, chatId, html);
+
+    console.log(response);
+}
 
 function sendHTML(bot, chatId, html) {
     const options = {
@@ -88,4 +105,4 @@ function sendFilm(bot, chatId, response) {
     })
 }
 
-module.exports = {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms};
+module.exports = {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms, getFilmsByGenres};
