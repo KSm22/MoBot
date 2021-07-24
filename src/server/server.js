@@ -1,6 +1,7 @@
 require('dotenv').config();
 const fetch = require('node-fetch');
 
+const {Film} = require('../models/models');
 const BASE_URL = "https://api.themoviedb.org/3";
 const PAGE = "1";
 const OPTIONS = {
@@ -101,8 +102,36 @@ function sendFilm(bot, chatId, response) {
     caption = `Название: ${response.title}\nСтрана(ы): ${countries}\nЖанр: ${genres}\nПродолжительность: ${response.runtime} минут\nДата релиза: ${response.release_date}\nОписание: ${response.overview}\nРейтинг: ${response.vote_average}`;
 
     bot.sendPhoto(chatId, `https://image.tmdb.org/t/p/w500/${imageURL}`, {
-        caption: caption
-    })
+        caption: caption,
+        /*reply_markup: JSON.stringify({
+            inline_keyboard: [
+                [{ text: 'Сохранить фильм', callback_data: 'saveFilm' }]
+            ]
+        })*/
+    });
 }
 
-module.exports = {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms, getFilmsByGenres};
+
+async function saveFilm(bot) {
+    bot.on('callback_query', query => {
+        const {chat} = query.message;
+
+
+        switch (query.data) {
+            // Top
+            case "saveFilm":
+                const film = Film.findOne({where: {filmId}});
+                break;
+        }
+
+        bot.answerCallbackQuery({
+            callback_query_id: query.id
+        })
+    });
+}
+
+
+
+
+
+module.exports = {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms, getFilmsByGenres, saveFilm};

@@ -1,8 +1,8 @@
 require('dotenv').config();
 const TelegramBot = require('node-telegram-bot-api');
-const {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms, getFilmsByGenres} = require('./server');
-const keyboard = require('./keyboard')
-const kb = require('./keyboard-btns');
+const {getPopularFilms, getFilmById, getFilmByTitle, getTopFilms, getFilmsByGenres} = require('./server/server');
+const keyboard = require('./keyboard/keyboard');
+const kb = require('./keyboard/keyboard-btns');
 
 const TOKEN = process.env.TOKEN;
 const bot = new TelegramBot(TOKEN, {
